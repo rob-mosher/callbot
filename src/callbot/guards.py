@@ -57,3 +57,22 @@ def check_press_digits(digits: str, facts: Mapping[str, str]) -> GuardResult:
         f"You tried to send {bare!r}, which does not appear in KNOWN FACTS. Do not guess "
         "identifiers. Call request_missing_info to ask for it instead.",
     )
+
+
+def check_bridge_timing(elapsed_seconds: float, min_seconds: int) -> GuardResult:
+    """Refuse to bridge in the opening seconds of a call.
+
+    Bridging dials the principal's phone, so a false positive rings them for nothing and
+    drops them into a call with an IVR. Recorded greetings and "how can I help you today"
+    prompts are exactly what fools a small model early, before there is enough conversation
+    to judge. Cheap insurance on an expensive mistake.
+    """
+    if elapsed_seconds < min_seconds:
+        remaining = min_seconds - elapsed_seconds
+        return GuardResult(
+            False,
+            f"Too early to bridge ({elapsed_seconds:.0f}s into the call; {remaining:.0f}s to go). "
+            "Keep working the call. If this really is a person, say something to them and "
+            "confirm from their reply before declaring again.",
+        )
+    return GuardResult(True)

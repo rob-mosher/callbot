@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from callbot.guards import check_press_digits
+from callbot.guards import check_bridge_timing, check_press_digits
 
 FACTS = {"full_name": "Casey Rivera", "callback_number": "555-0142"}
 
@@ -38,3 +38,13 @@ def test_empty_rejected():
 def test_no_facts_means_no_long_sequences():
     assert check_press_digits("2", {}).ok
     assert not check_press_digits("5550142", {}).ok
+
+
+def test_bridge_refused_in_opening_seconds():
+    r = check_bridge_timing(3.0, 15)
+    assert not r.ok and "Too early" in r.reason
+
+
+def test_bridge_allowed_after_threshold():
+    assert check_bridge_timing(15.0, 15).ok
+    assert check_bridge_timing(120.0, 15).ok
