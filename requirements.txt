@@ -1,6 +1,11 @@
-pipecat-ai[daily,deepgram,kokoro,silero,ollama]>=1.8.1
+pipecat-ai[daily,deepgram,kokoro,silero,ollama,webrtc]>=1.8.1
+# Browser UI for the Phase 0 console harness (scripts/console_bot.py).
+pipecat-ai-prebuilt
 fastapi
 uvicorn[standard]
 pydantic-settings
 httpx
 loguru
+
+# dev
+pytest
