@@ -41,6 +41,12 @@ member ID on a live call.
 
 Current: **36/36** on `llama3.1:8b`.
 
+## Collaborators
+
+Contributions to this project — human and AI — are recorded in
+[COLLABORATORS.md](COLLABORATORS.md) and in `Collaborator:` commit footers, following the
+[Collaborators Framework](https://github.com/rob-mosher/collaborators-framework).
+
 ## How safety is enforced
 
 Two layers, because one is not enough at 8B:
