@@ -5,6 +5,7 @@ The transport is injected rather than constructed here, so the console harness
 Anything tuned here is tuned for both.
 """
 
+import time
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -21,7 +22,7 @@ from pipecat.services.llm_service import FunctionCallParams
 from pipecat.services.ollama.llm import OLLamaLLMService
 
 from callbot.config import settings
-from callbot.guards import check_press_digits
+from callbot.guards import check_bridge_timing, check_press_digits
 from callbot.prompts import build_system_prompt
 from callbot.tools import function_schemas
 
@@ -29,7 +30,9 @@ from callbot.tools import function_schemas
 ActionSink = Callable[[str, dict[str, Any]], Any]
 
 
-def _register_handlers(llm: OLLamaLLMService, facts: Mapping[str, str], emit: ActionSink) -> None:
+def _register_handlers(
+    llm: OLLamaLLMService, facts: Mapping[str, str], emit: ActionSink, started_at: float
+) -> None:
     """Wire tool handlers. Every handler reports back to the model via result_callback.
 
     press_digits is the only guarded one: a rejection is returned as a normal tool result so
@@ -54,6 +57,11 @@ def _register_handlers(llm: OLLamaLLMService, facts: Mapping[str, str], emit: Ac
 
     async def human_reached(params: FunctionCallParams):
         evidence = params.arguments.get("evidence", "")
+        timing = check_bridge_timing(time.monotonic() - started_at, settings.min_seconds_before_bridge)
+        if not timing.ok:
+            logger.warning(f"[guard] rejected human_reached: {timing.reason}")
+            await params.result_callback({"status": "rejected", "reason": timing.reason})
+            return
         logger.success(f"[human reached] {evidence}")
         emit("human_reached", {"evidence": evidence})
         await params.result_callback(
@@ -96,14 +104,14 @@ def build_task(
     emit = emit or (lambda action, data: logger.debug(f"[action] {action} {data}"))
 
     stt = DeepgramSTTService(api_key=settings.deepgram_api_key)
-    tts = KokoroTTSService()
+    tts = KokoroTTSService(settings=KokoroTTSService.Settings(voice=settings.kokoro_voice))
     llm = OLLamaLLMService(
         base_url=settings.ollama_base_url,
         # Temperature 0 matches the conditions scripts/ivr_eval.py validates under.
         # Diverging here would make the eval stop predicting live behavior.
         settings=OLLamaLLMService.Settings(model=settings.ollama_model, temperature=0.0),
     )
-    _register_handlers(llm, facts, emit)
+    _register_handlers(llm, facts, emit, time.monotonic())
 
     system = build_system_prompt(
         objective=objective,

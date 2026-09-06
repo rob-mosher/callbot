@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # STT — cloud.
     deepgram_api_key: str = ""
 
+    # TTS voice. Kokoro requires one explicitly; 54 are available.
+    kokoro_voice: str = "af_heart"
+
     # Telephony.
     daily_api_key: str = ""
     daily_caller_id: str = ""
