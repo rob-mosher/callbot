@@ -95,3 +95,18 @@ def openai_tools() -> list[dict[str, Any]]:
         }
         for t in TOOL_DEFS
     ]
+
+
+def function_schemas() -> list["FunctionSchema"]:  # noqa: F821
+    """Same tools as Pipecat FunctionSchema objects, for the LLM context."""
+    from pipecat.adapters.schemas.function_schema import FunctionSchema
+
+    return [
+        FunctionSchema(
+            name=t["name"],
+            description=t["description"],
+            properties=t["properties"],
+            required=t["required"],
+        )
+        for t in TOOL_DEFS
+    ]

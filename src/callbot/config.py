@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     # Behavior.
     bot_name: str = "Ash"
+    principal_name: str = "the principal"
     min_seconds_before_bridge: int = 15
     max_call_seconds: int = 900
     principal_answer_timeout: int = 45
