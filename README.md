@@ -59,3 +59,7 @@ Two layers, because one is not enough at 8B:
 
 `KNOWN FACTS` is a disclosure allowlist, not a convenience: it bounds what the bot *can* say
 about you, no matter what the person on the other end asks.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
